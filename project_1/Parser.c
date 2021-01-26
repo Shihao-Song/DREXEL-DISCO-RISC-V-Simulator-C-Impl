@@ -39,6 +39,12 @@ void loadInstructions(Instruction_Memory *i_mem, const char *trace)
             i_mem->last = &(i_mem->instructions[IMEM_index]);
 	}
 
+        if (strcmp(raw_instr, "ld") == 0)
+        {
+            parseIType(raw_instr, &(i_mem->instructions[IMEM_index]));
+            i_mem->last = &(i_mem->instructions[IMEM_index]);
+	}
+
         IMEM_index++;
         PC += 4;
     }
@@ -78,6 +84,45 @@ void parseRType(char *opr, Instruction *instr)
     instr->instruction |= (rs_2 << (7 + 5 + 3 + 5));
     instr->instruction |= (funct7 << (7 + 5 + 3 + 5 + 5));
 }
+
+
+void parseIType(char *opr, Instruction *instr)
+{
+    instr->instruction = 0;
+    unsigned opcode = 0;
+    unsigned funct3 = 0;
+    // unsigned im = 0;
+
+    if (strcmp(opr, "ld") == 0)
+    {
+        opcode = 3;
+        funct3 = 3;
+        // im = 0;
+    }
+
+    char *holder;
+
+    char *reg = strtok(NULL, ", ");
+    unsigned rd = regIndex(reg);
+    printf("%d\n", rd);
+
+    reg = strtok(NULL, " (");
+    unsigned im = atoi(reg);
+    printf("%d\n", im);
+    im = im/8; // Must account for 8 bit adress
+
+    reg = strtok(NULL, ")");
+    unsigned rs_1 = regIndex(reg);
+    printf("%d and %d", im, rs_1);
+
+    // Contruct instruction
+    instr->instruction |= opcode;
+    instr->instruction |= (rd << 7);
+    instr->instruction |= (funct3 << (7 + 5));
+    instr->instruction |= (rs_1 << (7 + 5 + 3));
+    instr->instruction |= (im << (7 + 5 + 3 + 5));
+}
+
 
 int regIndex(char *reg)
 {
